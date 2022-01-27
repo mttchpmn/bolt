@@ -20,6 +20,7 @@ impl Editor {
                 die(&err);
             }
             if self.should_quit {
+                println!("Goodbye.\r");
                 break;
             }
             if let Err(err) = self.process_keypress() {
@@ -29,7 +30,7 @@ impl Editor {
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
-        print!("{}", termion::clear::All);
+        print!("{}{}", termion::clear::All, termion::cursor::Goto(1,1));
         io::stdout().flush()
     }
 
@@ -52,5 +53,6 @@ fn read_key() -> Result<Key, std::io::Error> {
 }
 
 fn die(e: &std::io::Error) {
+    println!("{}", termion::clear::All);
     panic!("{e}");
 }
