@@ -1,22 +1,22 @@
+use crate::Document;
+use crate::Row;
 use crate::Terminal;
+
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Default)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
-}
-impl Position {
-    pub fn origin() -> Self {
-        Position { x: 0, y: 0 }
-    }
 }
 
 pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    document: Document,
 }
 
 impl Editor {
@@ -24,7 +24,8 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialise terminal"),
-            cursor_position: Position::origin(),
+            cursor_position: Position::default(),
+            document: Document::open(),
         }
     }
 
@@ -44,9 +45,16 @@ impl Editor {
         }
     }
 
+    pub fn render_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.terminal.size().width as usize;
+        let row = row.render(start, end);
+        println!("{}\r", row);
+    }
+
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
         Terminal::cursor_hide();
-        Terminal::set_cursor_position(&Position::origin());
+        Terminal::set_cursor_position(&Position::default());
 
         if self.should_quit {
             Terminal::clear_screen();
@@ -62,10 +70,12 @@ impl Editor {
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
 
-        for row in 0..height - 1 {
+        for row_index in 0..height - 1 {
             Terminal::clear_current_line();
 
-            if row == height / 3 {
+            if let Some(row) = self.document.row(row_index as usize) {
+                self.render_row(row);
+            } else if self.document.is_empty() && row_index == height / 3 {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");
@@ -113,15 +123,15 @@ impl Editor {
             Key::Up => y = y.saturating_sub(1),
             Key::Down => {
                 if y < height {
-                    y = y.saturating_add(1)
+                    y = y.saturating_add(1);
                 }
-            },
+            }
             Key::Left => x = x.saturating_sub(1),
             Key::Right => {
                 if x < width {
-                    x = x.saturating_add(1)
+                    x = x.saturating_add(1);
                 }
-            },
+            }
             Key::PageDown => y = height,
             Key::PageUp => y = 0,
             Key::Home => x = 0,
