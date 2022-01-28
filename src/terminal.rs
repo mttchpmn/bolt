@@ -2,6 +2,7 @@ use crate::Position;
 
 use std::io::{self, stdout, Write};
 use termion::{
+    color,
     event::Key,
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
@@ -67,5 +68,21 @@ impl Terminal {
 
     pub fn cursor_show() {
         print!("{}", termion::cursor::Show);
+    }
+
+    pub fn set_bg_color(color: color::Rgb) {
+        print!("{}", color::Bg(color))
+    }
+
+    pub fn reset_bg_color() {
+        print!("{}", color::Bg(color::Reset))
+    }
+
+    pub fn set_fg_color(color: color::Rgb) {
+        print!("{}", color::Fg(color))
+    }
+
+    pub fn reset_fg_color() {
+        print!("{}", color::Fg(color::Reset))
     }
 }
