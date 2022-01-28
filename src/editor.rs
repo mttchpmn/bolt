@@ -71,13 +71,14 @@ impl Editor {
     }
 
     pub fn run(&mut self) {
-        self.logger.info("EDITOR RUNNING");
+        self.logger.info("Editor running");
         loop {
             if let Err(err) = self.refresh_screen() {
                 die(&err);
             }
 
             if self.should_quit {
+                self.logger.info("Quitting");
                 break;
             }
 
@@ -135,6 +136,7 @@ impl Editor {
         let mut status;
         let width = self.terminal.size().width as usize;
         let mut filename = String::from("[No Name]");
+
         if let Some(name) = &self.document.filename {
             filename = name.clone();
             filename.truncate(20);

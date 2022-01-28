@@ -25,7 +25,7 @@ impl Terminal {
         Ok(Self {
             size: Size {
                 width: size.0,
-                height: size.1,
+                height: size.1.saturating_sub(1), // Leave room for status bars
             },
             _stdout: stdout().into_raw_mode()?,
         })

@@ -1,4 +1,6 @@
-use std::fs;
+use std::{fs, time};
+
+use chrono::prelude::*;
 
 pub struct Logger {
     log_filepath: String
@@ -24,10 +26,14 @@ impl Logger {
     }
 
     fn format_log_message(&self, log_level: &str, msg: &str) -> String {
-        format!("[{}]: {}\n", log_level, msg)
+        let time = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        format!("[{}]: [{}]: {}\n", time, log_level, msg)
     }
 
     fn write_to_log_file(&self, msg: &str) {
-        fs::write(&self.log_filepath, msg).expect("Failed to write to log file");
+        let mut existing_content = fs::read_to_string(&self.log_filepath).expect("Failed to read log file");
+        existing_content.push_str(msg);
+
+        fs::write(&self.log_filepath, existing_content).expect("Failed to write to log file");
     }
 }
