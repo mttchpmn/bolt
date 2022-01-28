@@ -1,6 +1,7 @@
 use crate::Document;
 use crate::Row;
 use crate::Terminal;
+use crate::Logger;
 
 use std::env;
 use std::time::{Duration, Instant};
@@ -38,6 +39,7 @@ pub struct Editor {
     offset: Position,
     document: Document,
     status_message: StatusMessage,
+    logger: Logger,
 }
 
 impl Editor {
@@ -64,10 +66,12 @@ impl Editor {
             offset: Position::default(),
             document,
             status_message: StatusMessage::from(initial_status),
+            logger: Logger::new(String::from("log.txt")),
         }
     }
 
     pub fn run(&mut self) {
+        self.logger.info("EDITOR RUNNING");
         loop {
             if let Err(err) = self.refresh_screen() {
                 die(&err);
