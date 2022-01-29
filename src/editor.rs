@@ -1,7 +1,7 @@
 use crate::Document;
+use crate::Logger;
 use crate::Row;
 use crate::Terminal;
-use crate::Logger;
 
 use std::env;
 use std::time::{Duration, Instant};
@@ -188,6 +188,17 @@ impl Editor {
 
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Char(c) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(Key::Right);
+            }
+            Key::Delete => self.document.delete(&self.cursor_position),
+            Key::Backspace => {
+                if self.cursor_position.x > 0 || self.cursor_position.y > 0 {
+                    self.move_cursor(Key::Left);
+                    self.document.delete(&self.cursor_position);
+                }
+            }
             Key::Up
             | Key::Down
             | Key::Left
