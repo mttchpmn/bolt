@@ -4,6 +4,7 @@ use crate::Row;
 use crate::Terminal;
 
 use std::env;
+use std::io::Error;
 use std::time::{Duration, Instant};
 use termion::color;
 use termion::event::Key;
@@ -45,7 +46,7 @@ pub struct Editor {
 impl Editor {
     pub fn default() -> Self {
         let args: Vec<String> = env::args().collect();
-        let mut initial_status = String::from("HELP: Ctrl-Q = quit");
+        let mut initial_status = String::from("HELP: Ctrl-S = Save | Ctrl-Q = quit");
         let document = if args.len() > 1 {
             let filename = &args[1];
             let doc = Document::open(&filename);
@@ -188,6 +189,12 @@ impl Editor {
 
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Ctrl('s') => {
+                match self.document.save() {
+                    Ok(_) => self.status_message = StatusMessage::from(String::from("File saved successfully")),
+                    Err(_) => self.status_message = StatusMessage::from(String::from("Error saving file!")),
+                }
+            },
             Key::Char(c) => {
                 self.document.insert(&self.cursor_position, c);
                 self.move_cursor(Key::Right);
