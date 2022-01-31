@@ -1,6 +1,5 @@
 use std::cmp;
 use unicode_segmentation::UnicodeSegmentation;
-use crate::Position;
 
 #[derive(Debug, Default)]
 pub struct Row {

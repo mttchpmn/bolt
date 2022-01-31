@@ -1,4 +1,4 @@
-use std::{fs, time};
+use std::fs;
 
 use chrono::prelude::*;
 
@@ -7,18 +7,18 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn new(filepath: String) -> Self {
+    pub fn new(filepath: &str) -> Self {
         Self {
-            log_filepath: filepath
+            log_filepath: String::from(filepath)
         }
     }
 
+    pub fn debug(&self, msg: &str) {self.log("DEBUG", msg);}
     pub fn info(&self, msg: &str) {
         self.log("INFO", msg);
     }
-    pub fn warn(&self, msg: &str) {}
-    pub fn error(&self, msg: &str) {}
-    pub fn debug(&self, msg: &str) {}
+    pub fn warn(&self, msg: &str) {self.log("WARN", msg);}
+    pub fn error(&self, msg: &str) { self.log("ERROR", msg);}
 
     fn log(&self, log_level: &str, msg: &str) {
         let formatted_msg = &self.format_log_message(log_level, msg);

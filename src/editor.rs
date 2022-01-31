@@ -4,8 +4,6 @@ use crate::Row;
 use crate::Terminal;
 
 use std::env;
-use std::fmt::format;
-use std::io::Error;
 use std::time::{Duration, Instant};
 use termion::color;
 use termion::event::Key;
@@ -34,19 +32,19 @@ impl StatusMessage {
     }
 }
 
-pub struct Editor {
+pub struct Editor<'a> {
     should_quit: bool,
     confirm_quit: bool,
-    terminal: Terminal,
+    terminal: Terminal<'a>,
     cursor_position: Position,
     offset: Position,
     document: Document,
     status_message: StatusMessage,
-    logger: Logger,
+    logger: &'a Logger,
 }
 
-impl Editor {
-    pub fn default() -> Self {
+impl<'a> Editor<'a> {
+    pub fn new(logger: &'a Logger) -> Self {
         let args: Vec<String> = env::args().collect();
         let mut initial_status = String::from("HELP: Ctrl-S = Save | Ctrl-Q = quit");
         let document = if args.len() > 1 {
@@ -65,12 +63,12 @@ impl Editor {
         Self {
             should_quit: false,
             confirm_quit: false,
-            terminal: Terminal::default().expect("Failed to initialise terminal"),
+            terminal: Terminal::new(logger).expect("Failed to initialise terminal"),
             cursor_position: Position::default(),
             offset: Position::default(),
             document,
             status_message: StatusMessage::from(initial_status),
-            logger: Logger::new(String::from("log.txt")),
+            logger,
         }
     }
 
@@ -78,6 +76,7 @@ impl Editor {
         self.logger.info("Editor running");
         loop {
             if let Err(err) = self.refresh_screen() {
+                self.logger.error(&format!("Error refreshing screen: {}", err));
                 die(&err);
             }
 
@@ -87,6 +86,7 @@ impl Editor {
             }
 
             if let Err(err) = self.process_keypress() {
+                self.logger.error(&format!("Error handling keypress: {}", err));
                 die(&err);
             }
         }

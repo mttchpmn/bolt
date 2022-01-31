@@ -13,6 +13,7 @@ pub use row::Row;
 pub use logger::Logger;
 
 fn main() {
-    Editor::default().run();
+    let logger = Logger::new("log.txt");
+    Editor::new(&logger).run();
 }
 

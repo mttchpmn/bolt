@@ -1,4 +1,4 @@
-use crate::Position;
+use crate::{Logger, Position};
 
 use std::io::{self, stdout, Write};
 use termion::{
@@ -13,13 +13,14 @@ pub struct Size {
     pub height: u16,
 }
 
-pub struct Terminal {
+pub struct Terminal<'a> {
     size: Size,
+    logger: &'a Logger,
     _stdout: RawTerminal<std::io::Stdout>,
 }
 
-impl Terminal {
-    pub fn default() -> Result<Self, std::io::Error> {
+impl<'a> Terminal<'a> {
+    pub fn new(logger: &'a Logger) -> Result<Self, std::io::Error> {
         let size = termion::terminal_size()?;
 
         Ok(Self {
@@ -27,6 +28,7 @@ impl Terminal {
                 width: size.0,
                 height: size.1.saturating_sub(1), // Leave room for status bars
             },
+            logger,
             _stdout: stdout().into_raw_mode()?,
         })
     }

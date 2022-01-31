@@ -2,7 +2,6 @@ use crate::Position;
 use crate::Row;
 
 use std::fs;
-use std::io::Error;
 use std::io::Write;
 
 #[derive(Default, Debug)]
