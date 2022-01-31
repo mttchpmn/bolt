@@ -4,6 +4,7 @@ use crate::Row;
 use crate::Terminal;
 
 use std::env;
+use std::fmt::format;
 use std::io::Error;
 use std::time::{Duration, Instant};
 use termion::color;
@@ -189,12 +190,7 @@ impl Editor {
 
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
-            Key::Ctrl('s') => {
-                match self.document.save() {
-                    Ok(_) => self.status_message = StatusMessage::from(String::from("File saved successfully")),
-                    Err(_) => self.status_message = StatusMessage::from(String::from("Error saving file!")),
-                }
-            },
+            Key::Ctrl('s') => self.handle_save(),
             Key::Char(c) => {
                 self.document.insert(&self.cursor_position, c);
                 self.move_cursor(Key::Right);
@@ -219,6 +215,59 @@ impl Editor {
         self.scroll();
 
         Ok(())
+    }
+
+    fn handle_save(&mut self) {
+        match self.document.filename {
+            None => {
+                let new_name = self.prompt("Save as:").unwrap_or(None);
+                if new_name.is_none() {
+                    self.status_message = StatusMessage::from(String::from("Save aborted"));
+                    return;
+                }
+            }
+            _ => {}
+        }
+
+        match self.document.save() {
+            Ok(_) => {
+                self.status_message = StatusMessage::from(String::from("File saved successfully"))
+            }
+            Err(_) => self.status_message = StatusMessage::from(String::from("Error saving file!")),
+        }
+    }
+
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
+       let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(format!("{} {}", prompt, result));
+            self.refresh_screen()?;
+
+            match Terminal::read_key()? {
+                Key::Backspace => {
+                    if !result.is_empty() {
+                        result.truncate(result.len() - 1);
+                    }
+                }
+                Key::Char('\n') => break;
+                Key::Char(c) => {
+                    if !c.is_control() {
+                        result.push(c);
+                    }
+                }
+                Key::Esc => {
+                    result.truncate(0);
+                    break;
+                }
+                _ => ()
+            }
+        }
+        self.status_message = StatusMessage::from(String::new());
+        if result.is_empty() {
+            return Ok(None)
+        }
+
+        Ok(Some(result))
     }
 
     fn move_cursor(&mut self, key: Key) {
