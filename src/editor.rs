@@ -203,9 +203,9 @@ impl Editor {
         match pressed_key {
             Key::Ctrl('q') => {
                 if self.document.is_dirty() && !self.confirm_quit {
-                    self.status_message = StatusMessage::from(String::from(
+                    self.set_status_message(
                         "Warning: File has unsaved changes. Press Ctrl + Q again to quit.",
-                    ));
+                    );
                     self.confirm_quit = true;
 
                     return Ok(());
@@ -239,6 +239,10 @@ impl Editor {
         Ok(())
     }
 
+    fn set_status_message(&mut self, msg: &str) {
+        self.status_message = StatusMessage::from(String::from(msg));
+    }
+
     fn handle_quit(&mut self) {}
 
     fn handle_save(&mut self) {
@@ -246,7 +250,7 @@ impl Editor {
             None => {
                 let new_name = self.prompt("Save as:").unwrap_or(None);
                 if new_name.is_none() {
-                    self.status_message = StatusMessage::from(String::from("Save aborted"));
+                    self.set_status_message("Save aborted");
                     return;
                 }
             }
@@ -254,17 +258,15 @@ impl Editor {
         }
 
         match self.document.save() {
-            Ok(_) => {
-                self.status_message = StatusMessage::from(String::from("File saved successfully"))
-            }
-            Err(_) => self.status_message = StatusMessage::from(String::from("Error saving file!")),
+            Ok(_) => self.set_status_message("File saved successfully"),
+            Err(_) => self.set_status_message("Error saving file!"),
         }
     }
 
     fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
         let mut result = String::new();
         loop {
-            self.status_message = StatusMessage::from(format!("{} {}", prompt, result));
+            self.set_status_message(&format!("{} {}", prompt, result));
             self.refresh_screen()?;
 
             match Terminal::read_key()? {
@@ -286,7 +288,7 @@ impl Editor {
                 _ => (),
             }
         }
-        self.status_message = StatusMessage::from(String::new());
+        self.set_status_message("");
         if result.is_empty() {
             return Ok(None);
         }
