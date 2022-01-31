@@ -36,6 +36,7 @@ impl StatusMessage {
 
 pub struct Editor {
     should_quit: bool,
+    confirm_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
     offset: Position,
@@ -63,6 +64,7 @@ impl Editor {
 
         Self {
             should_quit: false,
+            confirm_quit: false,
             terminal: Terminal::default().expect("Failed to initialise terminal"),
             cursor_position: Position::default(),
             offset: Position::default(),
@@ -199,7 +201,17 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
 
         match pressed_key {
-            Key::Ctrl('q') => self.should_quit = true,
+            Key::Ctrl('q') => {
+                if self.document.is_dirty() && !self.confirm_quit {
+                    self.status_message = StatusMessage::from(String::from(
+                        "Warning: File has unsaved changes. Press Ctrl + Q again to quit.",
+                    ));
+                    self.confirm_quit = true;
+
+                    return Ok(());
+                }
+                self.should_quit = true
+            }
             Key::Ctrl('s') => self.handle_save(),
             Key::Char(c) => {
                 self.document.insert(&self.cursor_position, c);
@@ -226,6 +238,8 @@ impl Editor {
 
         Ok(())
     }
+
+    fn handle_quit(&mut self) {}
 
     fn handle_save(&mut self) {
         match self.document.filename {
