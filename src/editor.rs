@@ -1,4 +1,4 @@
-use crate::Document;
+use crate::{Config, Document};
 use crate::Logger;
 use crate::Row;
 use crate::Terminal;
@@ -41,11 +41,12 @@ pub struct Editor<'a> {
     offset: Position,
     document: Document,
     status_message: StatusMessage,
+    config: Config,
     logger: &'a Logger,
 }
 
 impl<'a> Editor<'a> {
-    pub fn new(logger: &'a Logger) -> Self {
+    pub fn new(config: Config, logger: &'a Logger) -> Self {
         let args: Vec<String> = env::args().collect();
         let mut initial_status = String::from("HELP: Ctrl-S = Save | Ctrl-Q = quit");
         let document = if args.len() > 1 {
@@ -69,6 +70,7 @@ impl<'a> Editor<'a> {
             offset: Position::default(),
             document,
             status_message: StatusMessage::from(initial_status),
+            config,
             logger,
         }
     }
@@ -183,8 +185,8 @@ impl<'a> Editor<'a> {
         status = format!("{}{}", status, line_indicator);
         status.truncate(width);
 
-        Terminal::set_bg_color(STATUS_BG_COLOR);
-        Terminal::set_fg_color(STATUS_FG_COLOR);
+        Terminal::set_bg_color(self.config.status_line_bg_color);
+        Terminal::set_fg_color(self.config.status_line_fg_color);
         println!("{}\r", status);
         Terminal::reset_bg_color();
         Terminal::reset_fg_color();

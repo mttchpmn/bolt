@@ -15,10 +15,10 @@ pub use logger::Logger;
 use crate::config::Config;
 
 fn main() {
-    let config = Config::load("config.json").expect("");
-    // println!("{:?}", config);
-
+    // TODO - Use default config if load fails
+    let config = Config::load("config.json").expect("Failed to load config");
     let logger = Logger::new("log.txt");
-    Editor::new(&logger).run();
+
+    Editor::new(config, &logger).run();
 }
 

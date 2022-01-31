@@ -35,8 +35,8 @@ fn parse_rgb_string(string: &str) -> Result<color::Rgb, Error> {
 
 #[derive(Debug)]
 pub struct Config {
-    status_line_bg_color: color::Rgb,
-    status_line_fg_color: color::Rgb,
+    pub status_line_bg_color: color::Rgb,
+    pub status_line_fg_color: color::Rgb,
 }
 
 impl Config {
