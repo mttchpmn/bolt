@@ -10,6 +10,7 @@ use termion::event::Key;
 
 const STATUS_FG_COLOR: color::Rgb = color::Rgb(50, 50, 50);
 const STATUS_BG_COLOR: color::Rgb = color::Rgb(239, 239, 239);
+const LINE_NUMBER_FG_COLOR: color::Rgb = color::Rgb(120, 120, 120);
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Default)]
@@ -76,7 +77,8 @@ impl<'a> Editor<'a> {
         self.logger.info("Editor running");
         loop {
             if let Err(err) = self.refresh_screen() {
-                self.logger.error(&format!("Error refreshing screen: {}", err));
+                self.logger
+                    .error(&format!("Error refreshing screen: {}", err));
                 die(&err);
             }
 
@@ -86,18 +88,11 @@ impl<'a> Editor<'a> {
             }
 
             if let Err(err) = self.process_keypress() {
-                self.logger.error(&format!("Error handling keypress: {}", err));
+                self.logger
+                    .error(&format!("Error handling keypress: {}", err));
                 die(&err);
             }
         }
-    }
-
-    pub fn render_row(&self, row: &Row) {
-        let width = self.terminal.size().width as usize;
-        let start = self.offset.x;
-        let end = self.offset.x + width;
-        let row = row.render(start, end);
-        println!("{}\r", row);
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
@@ -127,13 +122,31 @@ impl<'a> Editor<'a> {
             Terminal::clear_current_line();
 
             if let Some(row) = self.document.row(row_index as usize + self.offset.y) {
-                self.render_row(row);
+                self.render_row(row, row_index + 1);
             } else if self.document.is_empty() && row_index == height / 3 {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");
             }
         }
+    }
+
+    pub fn render_row(&self, row: &Row, index: u16) {
+        let width = self.terminal.size().width as usize;
+        let start = self.offset.x;
+        let end = self.offset.x + width;
+        let row = row.render(start, end);
+
+        let line_number = if index < 10 {
+            format!("0{}", index)
+        } else {
+            format!("{}", index)
+        };
+        // println!("{}|{}\r", line_number, row);
+        Terminal::set_fg_color(LINE_NUMBER_FG_COLOR);
+        print!("{}|", line_number);
+        Terminal::reset_fg_color();
+        println!("{}\r", row);
     }
 
     fn draw_status_bar(&self) {
