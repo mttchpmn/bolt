@@ -142,10 +142,12 @@ impl<'a> Editor<'a> {
         } else {
             format!("{}", index)
         };
-        // println!("{}|{}\r", line_number, row);
-        Terminal::set_fg_color(LINE_NUMBER_FG_COLOR);
-        print!("{}|", line_number);
-        Terminal::reset_fg_color();
+
+        // Uncomment once movement is handled
+        // Terminal::set_fg_color(LINE_NUMBER_FG_COLOR);
+        // print!("{}|", line_number);
+        // Terminal::reset_fg_color();
+
         println!("{}\r", row);
     }
 
