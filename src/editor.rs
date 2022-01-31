@@ -137,13 +137,23 @@ impl Editor {
     fn draw_status_bar(&self) {
         let mut status;
         let width = self.terminal.size().width as usize;
+        let modified_indicator = if self.document.is_dirty() {
+            "(modified)"
+        } else {
+            ""
+        };
         let mut filename = String::from("[No Name]");
 
         if let Some(name) = &self.document.filename {
             filename = name.clone();
             filename.truncate(20);
         }
-        status = format!("{} - {} lines", filename, self.document.len());
+        status = format!(
+            "{} - {} lines {}",
+            filename,
+            self.document.len(),
+            modified_indicator
+        );
         let line_indicator = format!(
             "{}/{}",
             self.cursor_position.y.saturating_add(1),
@@ -238,7 +248,7 @@ impl Editor {
     }
 
     fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
-       let mut result = String::new();
+        let mut result = String::new();
         loop {
             self.status_message = StatusMessage::from(format!("{} {}", prompt, result));
             self.refresh_screen()?;
@@ -249,7 +259,7 @@ impl Editor {
                         result.truncate(result.len() - 1);
                     }
                 }
-                Key::Char('\n') => break;
+                Key::Char('\n') => break,
                 Key::Char(c) => {
                     if !c.is_control() {
                         result.push(c);
@@ -259,12 +269,12 @@ impl Editor {
                     result.truncate(0);
                     break;
                 }
-                _ => ()
+                _ => (),
             }
         }
         self.status_message = StatusMessage::from(String::new());
         if result.is_empty() {
-            return Ok(None)
+            return Ok(None);
         }
 
         Ok(Some(result))
